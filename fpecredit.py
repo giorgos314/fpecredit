@@ -14,7 +14,7 @@ else:
     if len(repr(cardnum)) != 16:
         raise ValueError("Credit Card number must have exactly 16 digits")
 
-# Test value, TODO: multiple rounds
+# 101 bits so that we can have a 128 bit key, TODO: multiple rounds
 round = Bits(int = 1, length = 101)
 
 # Turn the card number into a binary number with exactly 54 digits
@@ -24,27 +24,21 @@ cardnum = Bits(int = cardnum, length = 54)
 left = cardnum[:27]
 right = cardnum[27:]
 
-# bin > SHA256 > hexdigest
 
 # This is the AES encryption used for each round in the Feistel network
 # We use ECB with no problem since we encrypt only one block with it
-def aes_enc(cardnum, round):
-    # TODO: Each round we get the AES-128 key by padding the initial right number with
-    # zeroes and appending the 8-bit, binary representation of the round number
+def aes_enc(half, round):
 
-    key = cardnum + round
-    print(key)
-    print(key.hex)
-    print(len(key))
-
+    key = half + round
     encrypter = AES.new(key.hex, AES.MODE_ECB)
-    output = encrypter.encrypt(Bits().join([cardnum, '0b00000']).bin)
-    output = Bits(output)[:27]
+    output = encrypter.encrypt(Bits().join([half, '0b00000']).bin)
 
-    return output
+    return Bits(output)[:27]
 
 # This is the AES decryption used for each round in the Feistel network
 # For decryption we just need to reverse the encryption key schedule
+
+#TODO: decrypt
 def aes_dec(cardnum, round):
     decrypter = AES.new(key, AES.MODE_ECB)
     cardnum = decrypter.decrypt(key)
