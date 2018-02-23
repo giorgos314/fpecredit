@@ -1,25 +1,16 @@
 #!/usr/bin/env python3
 import re
+import argparse
 
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from bitstring import Bits
+from random import randint
 
 
-# Credit card numbers must be of type int
-try:
-    cardnum = int(input("What is the card number?\n"))
-    key = str(input("What is the encryption key?\n"))
-    roundnum = int(input("How many rounds should the Feistel do?\n"))
-except ValueError as err:
-    print("Credit Card number must be a number!\n", err)
-    raise
-else:
-    # Credit cards must have 16 digits
-    if len(repr(cardnum)) != 16:
-        raise ValueError("Credit Card number must have exactly 16 digits")
-    if len(key) != 32:
-        raise ValueError("Key for AES-128 must be 32 characters long")
+parser = argparse.ArgumentParser()
+parser.add_argument("mode", help="Choose between enc, dec, test")
+args = parser.parse_args()
 
 
 def rounds(right, left, key, roundnum):
@@ -27,11 +18,12 @@ def rounds(right, left, key, roundnum):
     print("\n-----------------")
     print("Right Key: " + right.bin)
     print("Left Key:  " + left.bin)
+    print("-----------------\n")
     print("Starting AES Rounds..")
 
     for r in range(0, roundnum):
         print("Round Number: " + repr(r+1))
-        round = Bits(int = r, length = 101)
+        round = Bits(uint = r, length = 101)
 
         temp = right
         right = aes_enc(right, key, round) ^ left
@@ -77,8 +69,10 @@ def aes_dec(half, key, round):
 
 
 def mainloop(cardnum, key, roundnum):
+    card = re.findall('\d{4}', repr(cardnum))
+    print("Card Number: " + ' '.join(num for num in card))
     # Turn the card number into a binary number with exactly 54 digits
-    cardnum = Bits(int = cardnum, length = 54)
+    cardnum = Bits(uint = cardnum, length = 54)
 
     # Split the number into two 27-bit numbers
     left = cardnum[:27]
@@ -92,8 +86,34 @@ def mainloop(cardnum, key, roundnum):
         else:
             result = format(result, "016d")
             output = re.findall('\d{4}', repr(result))
-            print("Result: " + ' '.join(num for num in output))
+            print("Result: " + ' '.join(num for num in output) + "\n")
             return result
+
+
+if args.mode == "test":
+    print("\n---Test Mode---\n")
+    cardnum = randint(1000000000000000, 9999999999999999)
+    key = 32*"A"
+    roundnum = randint(3,9)
+else:
+    if args.mode == "enc":
+        print("\n---Encryption Mode---\n")
+    elif args.mode == "dec":
+        print("\n---Decryption Mode---\n")
+    # Credit card numbers must be of type int
+    try:
+        cardnum = int(input("What is the card number?\n"))
+        key = str(input("What is the encryption key?\n"))
+        roundnum = int(input("How many rounds should the Feistel do?\n"))
+    except ValueError as err:
+        print("Credit Card number must be a number!\n", err)
+        raise
+    else:
+        # Credit cards must have 16 digits
+        if len(repr(cardnum)) != 16:
+            raise ValueError("Credit Card number must have exactly 16 digits")
+        if len(key) != 32:
+            raise ValueError("Key for AES-128 must be 32 characters long")
 
 
 mainloop(cardnum, key, roundnum)
