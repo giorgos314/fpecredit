@@ -27,11 +27,11 @@ right = cardnum[27:]
 
 # This is the AES encryption used for each round in the Feistel network
 # We use ECB with no problem since we encrypt only one block with it
-def aes_enc(half, round):
+def aes_enc(half, key, round):
 
-    key = half + round
-    encrypter = AES.new(key.hex, AES.MODE_ECB)
-    output = encrypter.encrypt(Bits().join([half, '0b00000']).bin)
+    encrypter = AES.new(key, AES.MODE_ECB)
+    block = half + round
+    output = encrypter.encrypt(block.bin)
 
     return Bits(output)[:27]
 
