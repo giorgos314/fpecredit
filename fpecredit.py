@@ -32,15 +32,17 @@ def aes_enc(half, key, round):
     encrypter = AES.new(key, AES.MODE_ECB)
     block = half + round
     output = encrypter.encrypt(block.bin)
+    output = output[:27]
 
-    return Bits(output)[:27]
+    return Bits(output)
 
 # This is the AES decryption used for each round in the Feistel network
 # For decryption we just need to reverse the encryption key schedule
 
 #TODO: decrypt
-def aes_dec(cardnum, round):
+def aes_dec(half, key, round):
     decrypter = AES.new(key, AES.MODE_ECB)
-    cardnum = decrypter.decrypt(key)
+    block = half + round
+    output = decrypter.decrypt(block.bin)
 
-    return cardnum
+    return Bits(output)
