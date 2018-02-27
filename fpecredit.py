@@ -3,7 +3,6 @@ import re
 import argparse
 
 from Crypto.Cipher import AES
-from Crypto.Hash import SHA256
 from bitstring import Bits
 from random import randint
 from sys import byteorder
@@ -13,7 +12,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("mode", help="Choose between enc, dec, test, test1")
 args = parser.parse_args()
 
+
 cycles = 0
+
 
 def rounds(right, left, key, roundnum):
 # Implementation of FPE
@@ -36,7 +37,9 @@ def rounds(right, left, key, roundnum):
 
     pad = Bits(bin="0000000000")
     whole = pad + left + right
-    return abs(whole.int)
+    print("WHOLE:  " + repr(whole.int))
+    print("WHOLEB: " + whole.bin)
+    return whole.int
 
 
 # This is the AES encryption used for each round in the Feistel network
@@ -46,18 +49,13 @@ def aes_enc(half, key, round):
     encrypter = AES.new(key, AES.MODE_ECB)
     block = half + round
     output = encrypter.encrypt(block.bin)
-    output = bin(int.from_bytes(output, byteorder=byteorder))[:29]
+    print(output)
+    output = ''.join([str(x) for x in output])
+    output = bin(int(output))
+    output = output[2:29]
+    print(output)
 
-    return Bits(output)
-
-
-#TODO: decrypt
-def aes_dec(half, key, round):
-    decrypter = AES.new(key, AES.MODE_ECB)
-    block = half + round
-    output = decrypter.decrypt(block.bin)
-
-    return Bits(output)
+    return Bits(bin = output)
 
 
 def mainloop(cardnum, key, roundnum):
@@ -73,13 +71,18 @@ def mainloop(cardnum, key, roundnum):
     right = cardnum[27:]
 
     while True:
+        print("LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP")
         result = rounds(right, left, key, roundnum)
 
         if len(repr(result)) > 16:
             print("\nThe result is more than 16 digits, cycling...")
             cycles += 1
-            mainloop(result, key, roundnum)
-            break
+            result = Bits(uint = result, length = 54)
+            print("Going in to the next round, as result: " + result.bin)
+            print("Which is equal to: " + repr(result.int))
+            left = result[:27]
+            right = result[27:]
+            print("END OF LEN > 16 IF LOOP")
         else:
             result = format(result, "016d")
             output = re.findall('\d{4}', repr(result))
@@ -93,7 +96,7 @@ if args.mode == "test":
     cardnum = randint(1000000000000000, 9999999999999999)
     key = 32*"A"
     roundnum = randint(3,9)
-elif args.mode == "test1":
+elif args.mode == "testdec":
     print("\n---Test Mode---\n")
     cardnum = 9111111111111111
     key = 32*"A"
@@ -102,7 +105,7 @@ elif args.mode == "test2":
     print("\n---Test Mode---\n")
     cardnum = int(input("What is the card number?\n"))
     key = 32*"A"
-    roundnum = 1
+    roundnum = int(input("How many rounds should the Feistel do?\n"))
 else:
     if args.mode == "enc":
         print("\n---Encryption Mode---\n")
