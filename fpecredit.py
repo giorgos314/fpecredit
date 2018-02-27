@@ -25,8 +25,8 @@ def rounds(right, left, key, roundnum):
     print("Starting AES Rounds..")
 
     if args.mode == "dec" or args.mode == "testdec":
-        for r in range(0, roundnum):
-            print("Round Number: " + repr(r+1))
+        for r in range(roundnum-1, -1, -1):
+            print("Decrypting Round: " + repr(r+1))
             round = Bits(uint = r, length = 101)
             print("THIS Right Key: " + right.bin + "         " + repr(right.int))
             print("THIS Left Key:  " + left.bin + "         " + repr(left.int))
