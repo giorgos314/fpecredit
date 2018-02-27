@@ -127,16 +127,16 @@ if __name__ == "__main__":
         key = 32*"A"
         roundnum = randint(3, 9)
     elif args.mode == "testdec":
-        print("\n---Test Decryption Mode, KEY=32*\"A\"---\n")
+        print("\n---Test Decryption Mode, KEY=32*\"A, 5 Rounds\"---\n")
         cardnum = int(input("What is the card number?\n"))
         key = 32*"A"
-        roundnum = int(input("How many rounds should the Feistel do?\n"))
+        roundnum = 5
         decrypt = True
     elif args.mode == "testenc":
-        print("\n---Test Encryption Mode, KEY=32*\"A\"---\n")
+        print("\n---Test Encryption Mode, KEY=32*\"A, 5 Rounds\"---\n")
         cardnum = int(input("What is the card number?\n"))
         key = 32*"A"
-        roundnum = int(input("How many rounds should the Feistel do?\n"))
+        roundnum = 5
     else:
         if args.mode == "enc":
             print("\n---Encryption Mode---\n")
@@ -153,7 +153,7 @@ if __name__ == "__main__":
             raise
         else:
             # Credit cards must have 16 digits
-            if len(repr(cardnum)) != 16:
+            if len(repr(cardnum)) > 16:
                 raise ValueError("Credit Card number must have exactly 16 digits")
             if len(key) != 32:
                 raise ValueError("Key for AES-128 must be 32 characters long")

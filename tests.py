@@ -23,9 +23,9 @@ class FpeTests(unittest.TestCase):
         self.assertEqual(len(result), 16)
 
     def test_multiple_proper_decryptions(self):
-        for x in range(50):
+        for x in range(100):
             decrypt = False
-            cardnum = randint(1000000000000000, 9999999999999999)
+            cardnum = randint(0000000000000000, 9999999999999999)
             key = 32*"A"
             roundnum = randint(3, 9)
             encrypted = mainloop(cardnum, key, roundnum, decrypt)
