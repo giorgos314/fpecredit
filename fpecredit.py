@@ -24,21 +24,38 @@ def rounds(right, left, key, roundnum):
     print("-----------------\n")
     print("Starting AES Rounds..")
 
-    for r in range(0, roundnum):
-        print("Round Number: " + repr(r+1))
-        round = Bits(uint = r, length = 101)
+    if args.mode == "dec" or args.mode == "testdec":
+        for r in range(0, roundnum):
+            print("Round Number: " + repr(r+1))
+            round = Bits(uint = r, length = 101)
+            print("THIS Right Key: " + right.bin + "         " + repr(right.int))
+            print("THIS Left Key:  " + left.bin + "         " + repr(left.int))
+            print("-----------------")
 
-        temp = right
-        right = aes_enc(right, key, round) ^ left
-        left = temp
-        print("Right Key: " + right.bin)
-        print("Left Key:  " + left.bin)
-        print("-----------------")
+            temp = left
+            left = aes_enc(left, key, round) ^ right
+            right = temp
+            print("NEXT Right Key: " + right.bin + "         " + repr(right.int))
+            print("NEXT Left Key:  " + left.bin + "         " + repr(left.int))
+            print("-----------------")
+    else:
+        for r in range(0, roundnum):
+            print("Round Number: " + repr(r+1))
+            round = Bits(uint = r, length = 101)
+            print("THIS Right Key: " + right.bin + "         " + repr(right.int))
+            print("THIS Left Key:  " + left.bin + "         " + repr(left.int))
+            print("-----------------")
+
+            temp = right
+            right = aes_enc(right, key, round) ^ left
+            left = temp
+            print("NEXT Right Key: " + right.bin + "         " + repr(right.int))
+            print("NEXT Left Key:  " + left.bin + "         " + repr(left.int))
+            print("-----------------")
 
     pad = Bits(bin="0000000000")
     whole = pad + left + right
-    print("WHOLE:  " + repr(whole.int))
-    print("WHOLEB: " + whole.bin)
+
     return whole.int
 
 
@@ -48,12 +65,11 @@ def aes_enc(half, key, round):
 
     encrypter = AES.new(key, AES.MODE_ECB)
     block = half + round
+    print(block.bin)
     output = encrypter.encrypt(block.bin)
-    print(output)
     output = ''.join([str(x) for x in output])
     output = bin(int(output))
     output = output[2:29]
-    print(output)
 
     return Bits(bin = output)
 
@@ -71,18 +87,15 @@ def mainloop(cardnum, key, roundnum):
     right = cardnum[27:]
 
     while True:
-        print("LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP")
         result = rounds(right, left, key, roundnum)
 
         if len(repr(result)) > 16:
             print("\nThe result is more than 16 digits, cycling...")
             cycles += 1
             result = Bits(uint = result, length = 54)
-            print("Going in to the next round, as result: " + result.bin)
-            print("Which is equal to: " + repr(result.int))
+
             left = result[:27]
             right = result[27:]
-            print("END OF LEN > 16 IF LOOP")
         else:
             result = format(result, "016d")
             output = re.findall('\d{4}', repr(result))
@@ -97,12 +110,12 @@ if args.mode == "test":
     key = 32*"A"
     roundnum = randint(3,9)
 elif args.mode == "testdec":
-    print("\n---Test Mode---\n")
-    cardnum = 9111111111111111
+    print("\n---Test Decryption Mode, KEY=32*\"A\"---\n")
+    cardnum = int(input("What is the card number?\n"))
     key = 32*"A"
-    roundnum = 1
+    roundnum = int(input("How many rounds should the Feistel do?\n"))
 elif args.mode == "test2":
-    print("\n---Test Mode---\n")
+    print("\n---Test Encryption Mode, KEY=32*\"A\"---\n")
     cardnum = int(input("What is the card number?\n"))
     key = 32*"A"
     roundnum = int(input("How many rounds should the Feistel do?\n"))
